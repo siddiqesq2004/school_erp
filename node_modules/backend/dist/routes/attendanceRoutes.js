@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const attendanceController_1 = require("../controllers/attendanceController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const router = (0, express_1.Router)();
+router.use(authMiddleware_1.protect);
+router.get('/students', attendanceController_1.getStudentAttendance);
+router.post('/students', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.HOD, authMiddleware_1.Role.TEACHER, authMiddleware_1.Role.STAFF), attendanceController_1.markStudentAttendance);
+router.get('/reports/monthly', attendanceController_1.getAttendanceReport);
+router.get('/staff', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.HOD, authMiddleware_1.Role.STAFF), attendanceController_1.getStaffAttendance);
+router.post('/staff', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.HOD, authMiddleware_1.Role.STAFF), attendanceController_1.markStaffAttendance);
+exports.default = router;

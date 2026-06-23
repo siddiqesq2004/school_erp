@@ -1,0 +1,18 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const communicationController_1 = require("../controllers/communicationController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const router = (0, express_1.Router)();
+router.get('/whatsapp/webhook', communicationController_1.verifyWhatsAppWebhook);
+router.post('/whatsapp/webhook', communicationController_1.receiveWhatsAppWebhook);
+router.use(authMiddleware_1.protect);
+router.get('/settings', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.STAFF), communicationController_1.getCommunicationSettings);
+router.patch('/settings', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.STAFF), communicationController_1.updateCommunicationSettings);
+router.get('/circulars', communicationController_1.getCirculars);
+router.post('/circulars', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.HOD, authMiddleware_1.Role.STAFF), communicationController_1.createCircular);
+router.patch('/circulars/:circularId/publish', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.HOD, authMiddleware_1.Role.STAFF), communicationController_1.publishCircular);
+router.post('/messages', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.HOD, authMiddleware_1.Role.STAFF), communicationController_1.sendManualMessage);
+router.get('/logs', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.HOD, authMiddleware_1.Role.STAFF), communicationController_1.getCommunicationLogs);
+router.post('/push-devices', communicationController_1.registerPushDevice);
+exports.default = router;

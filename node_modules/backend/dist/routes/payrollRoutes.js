@@ -1,0 +1,18 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const payrollController_1 = require("../controllers/payrollController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const router = (0, express_1.Router)();
+router.use(authMiddleware_1.protect);
+router.patch('/staff/:staffId', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.STAFF), payrollController_1.updateStaffDetails);
+router.get('/salaries', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.STAFF), payrollController_1.getSalaryStructures);
+router.post('/salaries', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.STAFF), payrollController_1.createSalaryStructure);
+router.get('/leaves', payrollController_1.getLeaves);
+router.post('/leaves', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.HOD, authMiddleware_1.Role.TEACHER, authMiddleware_1.Role.STAFF), payrollController_1.createLeave);
+router.patch('/leaves/:leaveId', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.HOD, authMiddleware_1.Role.STAFF), payrollController_1.updateLeaveStatus);
+router.get('/runs', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.STAFF), payrollController_1.getPayrollRuns);
+router.post('/runs', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.STAFF), payrollController_1.processPayroll);
+router.patch('/runs/:runId/paid', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.STAFF), payrollController_1.markPayrollPaid);
+router.get('/runs/:runId/bank-transfer', (0, authMiddleware_1.restrictTo)(authMiddleware_1.Role.ADMIN, authMiddleware_1.Role.STAFF), payrollController_1.exportBankTransfer);
+exports.default = router;
