@@ -289,3 +289,39 @@ export const getStaff = async (req: AuthenticatedRequest, res: Response) => {
     return res.status(500).json({ success: false, message: 'Error fetching staff' });
   }
 };
+
+export const deleteStudent = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || req.user.role !== Role.ADMIN) return res.status(403).json({ success: false, message: 'Forbidden' });
+    const { id } = req.params;
+    
+    // Using transaction to delete user will cascade delete studentProfile
+    const profile = await prisma.studentProfile.findUnique({ where: { id }, select: { userId: true } });
+    if (!profile) return res.status(404).json({ success: false, message: 'Student not found' });
+
+    await prisma.user.delete({ where: { id: profile.userId } });
+
+    return res.status(200).json({ success: true, message: 'Student deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Error deleting student' });
+  }
+};
+
+export const deleteStaff = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || req.user.role !== Role.ADMIN) return res.status(403).json({ success: false, message: 'Forbidden' });
+    const { id } = req.params;
+
+    // Using transaction to delete user will cascade delete staffProfile
+    const profile = await prisma.staffProfile.findUnique({ where: { id }, select: { userId: true } });
+    if (!profile) return res.status(404).json({ success: false, message: 'Staff not found' });
+
+    await prisma.user.delete({ where: { id: profile.userId } });
+
+    return res.status(200).json({ success: true, message: 'Staff deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Error deleting staff' });
+  }
+};

@@ -13,7 +13,7 @@ const hostelSchema = z.object({ name: z.string().min(2), address: z.string().opt
 const hostelRoomSchema = z.object({ hostelId: z.string().uuid(), roomNo: z.string().min(1), capacity: z.number().int().min(1) });
 const hostelAllocateSchema = z.object({ roomId: z.string().uuid(), studentId: z.string().uuid(), fromDate: z.string(), toDate: z.string().optional() });
 
-const menuItemSchema = z.object({ name: z.string().min(1), price: z.number().positive(), available: z.boolean().optional() });
+const menuItemSchema = z.object({ name: z.string().min(1), price: z.number().positive(), category: z.string().optional(), available: z.boolean().optional() });
 const canteenOrderSchema = z.object({ studentId: z.string().uuid().optional(), items: z.array(z.object({ itemId: z.string().uuid(), qty: z.number().int().min(1) })).min(1) });
 
 const sportSchema = z.object({ name: z.string().min(2) });
@@ -378,6 +378,19 @@ export const listMedicalVisits = async (req: AuthenticatedRequest, res: Response
     return res.status(200).json({ success: true, data: visits });
   } catch (err: any) {
     return res.status(500).json({ success: false, message: 'Error listing medical visits' });
+  }
+};
+
+export const deleteMenuItem = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const schoolId = requireAuth(req);
+    const { id } = req.params;
+    await prisma.menuItem.delete({
+      where: { id, schoolId }
+    });
+    return res.status(200).json({ success: true, message: 'Menu item deleted' });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: 'Error deleting menu item' });
   }
 };
 

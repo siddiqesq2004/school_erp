@@ -24,6 +24,7 @@ router.post('/hostel-allocate', restrictTo(Role.ADMIN, Role.STAFF), c.allocateHo
 // Canteen
 router.post('/menu', restrictTo(Role.ADMIN, Role.STAFF), c.createMenuItem as any);
 router.get('/menu', c.listMenuItems as any);
+router.delete('/menu/:id', restrictTo(Role.ADMIN), c.deleteMenuItem as any);
 router.post('/orders', restrictTo(Role.ADMIN, Role.STAFF, Role.STUDENT), c.createCanteenOrder as any);
 router.get('/orders', c.listCanteenOrders as any);
 

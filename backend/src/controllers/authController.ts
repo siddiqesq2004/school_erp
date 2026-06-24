@@ -366,6 +366,7 @@ export const createPortalUser = async (req: AuthenticatedRequest, res: Response)
             studentId: studentId,
             name: username, // Fallback name
             relation: 'Parent', // Default relation
+            phone: '', // Default phone
           }
         });
       }

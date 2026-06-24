@@ -109,7 +109,7 @@ const Login = () => {
               <School className="w-8 h-8 text-sky-400" />
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight text-white">
-              Aegis <span className="text-gradient">ERP</span>
+              School <span className="text-gradient">ERP</span>
             </h1>
           </div>
           <div className="space-y-4">
@@ -149,7 +149,7 @@ const Login = () => {
               <School className="w-8 h-8 text-sky-400" />
             </div>
             <h1 className="text-3xl font-extrabold text-white mb-1">
-              Aegis <span className="text-gradient">ERP</span>
+              School <span className="text-gradient">ERP</span>
             </h1>
           </motion.div>
 

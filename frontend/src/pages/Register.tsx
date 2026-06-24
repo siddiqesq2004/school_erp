@@ -255,7 +255,9 @@ const Register = () => {
                     </span>
                     <input
                       type="email"
-                      placeholder="e.g. principal@school.com"
+                      pattern=".+@gmail\.com"
+                      title="Must be a @gmail.com address"
+                      placeholder="Email (@gmail.com)"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-400/50 transition-colors"

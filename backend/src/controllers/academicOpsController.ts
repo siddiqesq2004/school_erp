@@ -317,7 +317,7 @@ export const createParentAccess = async (req: AuthenticatedRequest, res: Respons
     const data = parentSchema.parse(req.body);
     const student = await prisma.studentProfile.findFirst({ where: { id: data.studentId, user: { schoolId: req.user.schoolId } } });
     if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
-    if (await prisma.user.findUnique({ where: { username: data.username.toLowerCase() } })) return res.status(400).json({ success: false, message: 'Username is already taken' });
+    if (await prisma.user.findFirst({ where: { username: data.username.toLowerCase(), schoolId: req.user.schoolId } })) return res.status(400).json({ success: false, message: 'Username is already taken' });
     const password = await bcrypt.hash(data.password, 10);
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({ data: { schoolId: req.user!.schoolId, username: data.username.toLowerCase(), password, email: data.email, role: Role.PARENT } });

@@ -190,7 +190,9 @@ const PortalAccounts = () => {
                 </span>
                 <input
                   type="email"
-                  placeholder="user@example.com"
+                  pattern=".+@gmail\.com"
+                  title="Must be a @gmail.com address"
+                  placeholder="Email (@gmail.com)"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
+import { SearchableSelect } from '../components/SearchableSelect';
 import confetti from 'canvas-confetti';
 import { 
   BookOpen, 
@@ -95,6 +96,9 @@ const Phase10 = () => {
   // Menu Item
   const [menuName, setMenuName] = useState('');
   const [menuPrice, setMenuPrice] = useState('');
+  const [menuCategory, setMenuCategory] = useState('Veg');
+  const [menuSearch, setMenuSearch] = useState('');
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState('All');
   // Sport
   const [sportName, setSportName] = useState('');
   // Team
@@ -459,17 +463,37 @@ const Phase10 = () => {
       const res = await fetch(`${API_BASE}/api/phase10/menu`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...headers },
-        body: JSON.stringify({ name: menuName, price: parseFloat(menuPrice) })
+        body: JSON.stringify({ name: menuName, price: parseFloat(menuPrice), category: menuCategory })
       });
       const json = await res.json();
       if (json.success) {
         showToast(`Canteen item "${menuName}" created!`, 'success');
         setMenuName('');
         setMenuPrice('');
+        setMenuCategory('Veg');
         loadAllData();
       }
     } catch (err) {
       showToast('Error adding menu item', 'error');
+    }
+  };
+
+  const deleteMenuItem = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this menu item?')) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/phase10/menu/${id}`, {
+        method: 'DELETE',
+        headers,
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Menu item deleted successfully', 'success');
+        loadAllData();
+      } else {
+        showToast(data.message || 'Error deleting menu item', 'error');
+      }
+    } catch (err) {
+      showToast('Error deleting menu item', 'error');
     }
   };
 
@@ -1105,16 +1129,42 @@ const Phase10 = () => {
               {/* POS Menu Grid */}
               <div className="lg:col-span-2 space-y-6">
                 <div className="glass p-5 rounded-2xl border border-white/5 space-y-4">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                     <h4 className="font-bold text-white text-sm">Canteen Menu / Point-of-Sale (POS)</h4>
-                    <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full font-bold">Fast Ordering Terminal</span>
+                    <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full font-bold hidden sm:inline-block">Fast Ordering Terminal</span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="text"
+                      placeholder="Search menu items..."
+                      value={menuSearch}
+                      onChange={(e) => setMenuSearch(e.target.value)}
+                      className="flex-1 p-2 bg-slate-950 border border-slate-900 rounded-xl text-xs text-slate-300 focus:outline-none"
+                    />
+                    <select
+                      value={activeCategoryFilter}
+                      onChange={(e) => setActiveCategoryFilter(e.target.value)}
+                      className="p-2 bg-slate-950 border border-slate-900 rounded-xl text-xs text-slate-300 focus:outline-none w-full sm:w-40"
+                    >
+                      <option value="All">All Categories</option>
+                      <option value="Veg">Veg</option>
+                      <option value="Non Veg">Non Veg</option>
+                      <option value="Beverages">Beverages</option>
+                    </select>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {menuItems.length === 0 ? (
-                      <p className="text-xs text-slate-500 py-4 col-span-3 text-center">No menu items created.</p>
+                    {menuItems.filter(item => 
+                      (activeCategoryFilter === 'All' || item.category === activeCategoryFilter) &&
+                      item.name.toLowerCase().includes(menuSearch.toLowerCase())
+                    ).length === 0 ? (
+                      <p className="text-xs text-slate-500 py-4 col-span-3 text-center">No menu items found.</p>
                     ) : (
-                      menuItems.map((item) => (
+                      menuItems.filter(item => 
+                        (activeCategoryFilter === 'All' || item.category === activeCategoryFilter) &&
+                        item.name.toLowerCase().includes(menuSearch.toLowerCase())
+                      ).map((item) => (
                         <div 
                           key={item.id} 
                           className="p-4 bg-slate-950/20 border border-white/5 rounded-2xl flex flex-col justify-between h-32 hover:border-white/10 hover:bg-slate-950/30 transition-all group"
@@ -1122,7 +1172,12 @@ const Phase10 = () => {
                           <div>
                             <div className="flex items-center justify-between">
                               <span className="text-xl">🍔</span>
-                              <span className="text-xs font-bold text-emerald-400">₹{item.price}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-emerald-400">₹{item.price}</span>
+                                <button onClick={(e) => { e.stopPropagation(); deleteMenuItem(item.id); }} className="text-red-500/70 hover:text-red-500 transition-colors">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
                             <h5 className="font-bold text-slate-200 text-xs mt-2 line-clamp-1">{item.name}</h5>
                           </div>
@@ -1211,16 +1266,15 @@ const Phase10 = () => {
                   </div>
 
                   <div className="space-y-4 pt-4 border-t border-slate-900">
-                    <select
+                    <SearchableSelect
+                      options={[
+                        { id: "", label: "Order Account: Guest Visitor" },
+                        ...students.map(s => ({ id: s.id, label: `${s.firstName} ${s.lastName} (${s.admissionNo})` }))
+                      ]}
                       value={selectedCartStudent}
-                      onChange={(e) => setSelectedCartStudent(e.target.value)}
-                      className="w-full p-2 bg-slate-950 border border-slate-900 rounded-xl text-xs text-slate-300 focus:outline-none"
-                    >
-                      <option value="">Order Account: Guest Visitor</option>
-                      {students.map(s => (
-                        <option key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.admissionNo})</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setSelectedCartStudent(val)}
+                      className="w-full"
+                    />
 
                     <div className="space-y-1 text-xs text-slate-400">
                       <div className="flex justify-between"><span>Subtotal:</span><span className="text-slate-200">₹{cart.reduce((a, c) => a + (c.item.price * c.qty), 0)}</span></div>
@@ -1254,6 +1308,15 @@ const Phase10 = () => {
                       onChange={(e) => setMenuName(e.target.value)}
                       className="w-full p-2 bg-slate-950 border border-slate-900 rounded-xl text-xs text-slate-300 focus:outline-none"
                     />
+                    <select
+                      value={menuCategory}
+                      onChange={(e) => setMenuCategory(e.target.value)}
+                      className="w-full p-2 bg-slate-950 border border-slate-900 rounded-xl text-xs text-slate-300 focus:outline-none"
+                    >
+                      <option value="Veg">Veg</option>
+                      <option value="Non Veg">Non Veg</option>
+                      <option value="Beverages">Beverages</option>
+                    </select>
                     <input
                       placeholder="Price in INR"
                       type="number"
@@ -1550,16 +1613,13 @@ const Phase10 = () => {
                     <Heart className="w-4 h-4 text-rose-400 animate-pulse" /> Register Health Profile
                   </h4>
                   <form onSubmit={handleAddHealth} className="space-y-3 mt-3">
-                    <select
+                    <SearchableSelect
+                      options={students.map(s => ({ id: s.id, label: `${s.firstName} ${s.lastName} (${s.admissionNo})` }))}
                       value={healthStudentId}
-                      onChange={(e) => setHealthStudentId(e.target.value)}
-                      className="w-full p-2 bg-slate-950 border border-slate-900 rounded-xl text-xs text-slate-300 focus:outline-none"
-                    >
-                      <option value="">Select Student</option>
-                      {students.map(s => (
-                        <option key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.admissionNo})</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setHealthStudentId(val)}
+                      placeholder="Select Student"
+                      className="w-full"
+                    />
                     <input
                       placeholder="Known Allergies (e.g. Peanuts, Penicillin)"
                       value={healthAllergies}
@@ -1583,16 +1643,13 @@ const Phase10 = () => {
                     <Activity className="w-4 h-4 text-sky-400 animate-pulse" /> Record Sick Bay Visit
                   </h4>
                   <form onSubmit={handleAddVisit} className="space-y-3 mt-3">
-                    <select
+                    <SearchableSelect
+                      options={students.map(s => ({ id: s.id, label: `${s.firstName} ${s.lastName} (${s.admissionNo})` }))}
                       value={visitStudentId}
-                      onChange={(e) => setVisitStudentId(e.target.value)}
-                      className="w-full p-2 bg-slate-950 border border-slate-900 rounded-xl text-xs text-slate-300 focus:outline-none"
-                    >
-                      <option value="">Select Student</option>
-                      {students.map(s => (
-                        <option key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.admissionNo})</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setVisitStudentId(val)}
+                      placeholder="Select Student"
+                      className="w-full"
+                    />
                     <input
                       type="date"
                       value={visitDate}

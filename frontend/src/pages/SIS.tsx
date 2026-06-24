@@ -6,7 +6,8 @@ import {
   Filter, 
   UserPlus, 
   X,
-  Loader
+  Loader,
+  Trash2
 } from 'lucide-react';
 
 const SIS = () => {
@@ -51,16 +52,34 @@ const SIS = () => {
         setClasses(clsData.data);
       }
 
-      // Load students
       const studRes = await fetch('http://localhost:5000/api/school/students', { headers });
       const studData = await studRes.json();
       if (studData.success) {
         setStudents(studData.data);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this student?')) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/school/students/${id}`, {
+        method: 'DELETE',
+        headers,
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Student deleted successfully', 'success');
+        loadData();
+      } else {
+        showToast(data.message || 'Error deleting student', 'error');
+      }
+    } catch (error) {
+      showToast('Error deleting student', 'error');
     }
   };
 
@@ -204,6 +223,7 @@ const SIS = () => {
                   <th className="px-6 py-4">Date of Birth</th>
                   <th className="px-6 py-4">Gender</th>
                   <th className="px-6 py-4">Guardian Details</th>
+                  <th className="px-6 py-4">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-900/50 text-xs text-slate-300">
@@ -235,6 +255,11 @@ const SIS = () => {
                     <td className="px-6 py-4 text-slate-400">
                       <p className="font-semibold text-slate-300">{stud.guardianName || 'N/A'}</p>
                       <span className="text-[10px] text-slate-500">{stud.guardianPhone || 'N/A'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button onClick={() => handleDelete(stud.id)} className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -304,6 +329,9 @@ const SIS = () => {
                     </label>
                     <input
                       type="email"
+                      pattern=".+@gmail\.com"
+                      title="Must be a @gmail.com address"
+                      placeholder="Email (@gmail.com)"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-3 py-2 bg-slate-950 border border-slate-900 rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-400/40"
@@ -444,9 +472,14 @@ const SIS = () => {
                         Guardian Phone
                       </label>
                       <input
-                        type="text"
+                        type="tel"
+                        pattern="[0-9]{10}"
+                        maxLength={10}
+                        minLength={10}
+                        title="10-digit Phone Number"
+                        placeholder="10-digit Phone Number"
                         value={guardianPhone}
-                        onChange={(e) => setGuardianPhone(e.target.value)}
+                        onChange={(e) => setGuardianPhone(e.target.value.replace(/\D/g, ''))}
                         className="w-full px-3 py-2 bg-slate-950 border border-slate-900 rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none"
                       />
                     </div>

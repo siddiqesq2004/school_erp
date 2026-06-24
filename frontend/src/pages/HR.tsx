@@ -7,7 +7,8 @@ import {
   Filter, 
   X,
   Loader,
-  Briefcase
+  Briefcase,
+  Trash2
 } from 'lucide-react';
 
 const HR = () => {
@@ -35,11 +36,11 @@ const HR = () => {
   const [roleFilter, setRoleFilter] = useState('');
 
   const token = localStorage.getItem('scl_token');
+  const headers = { 'Authorization': `Bearer ${token}` };
 
   const loadStaff = async () => {
     try {
       setLoading(true);
-      const headers = { 'Authorization': `Bearer ${token}` };
       const res = await fetch('http://localhost:5000/api/school/staff', { headers });
       const data = await res.json();
       if (data.success) {
@@ -49,6 +50,27 @@ const HR = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this staff member?')) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/school/staff/${id}`, {
+        method: 'DELETE',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        loadStaff();
+      } else {
+        alert(data.message || 'Error deleting staff');
+      }
+    } catch (err) {
+      alert('Error deleting staff');
     }
   };
 
@@ -186,6 +208,7 @@ const HR = () => {
                   <th className="px-6 py-4">Designation</th>
                   <th className="px-6 py-4">Department</th>
                   <th className="px-6 py-4">Contact Phone</th>
+                  <th className="px-6 py-4">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-900/50 text-xs text-slate-300">
@@ -211,6 +234,11 @@ const HR = () => {
                     <td className="px-6 py-4 text-slate-400">{st.designation || 'N/A'}</td>
                     <td className="px-6 py-4">{st.department || 'N/A'}</td>
                     <td className="px-6 py-4 text-slate-400">{st.phone || 'N/A'}</td>
+                    <td className="px-6 py-4">
+                      <button onClick={() => handleDelete(st.id)} className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -371,9 +399,14 @@ const HR = () => {
                     Contact Phone
                   </label>
                   <input
-                    type="text"
+                    type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                    pattern="[0-9]{10}"
+                    maxLength={10}
+                    minLength={10}
+                    title="10-digit Phone Number"
+                    placeholder="10-digit Phone Number"
                     className="w-full px-3 py-2 bg-slate-950 border border-slate-900 rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none"
                   />
                 </div>
@@ -385,6 +418,9 @@ const HR = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    pattern=".+@gmail\.com"
+                    title="Must be a @gmail.com address"
+                    placeholder="Email (@gmail.com)"
                     className="w-full px-3 py-2 bg-slate-950 border border-slate-900 rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none"
                   />
                 </div>

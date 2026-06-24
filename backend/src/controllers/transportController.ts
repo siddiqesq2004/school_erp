@@ -130,6 +130,54 @@ export const createRoute = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
+export const updateRoute = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ success: false, message: 'Unauthenticated' });
+    const { id } = req.params;
+    const data = routeSchema.parse(req.body);
+
+    const existing = await prisma.transportRoute.findFirst({ where: { id, schoolId: req.user.schoolId } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Route not found' });
+
+    if (data.vehicleId) {
+      const vehicle = await prisma.transportVehicle.findFirst({ where: { id: data.vehicleId, schoolId: req.user.schoolId } });
+      if (!vehicle) return res.status(404).json({ success: false, message: 'Vehicle not found for this school' });
+    }
+
+    if (data.driverId) {
+      const driver = await prisma.staffProfile.findFirst({ where: { id: data.driverId, user: { schoolId: req.user.schoolId } } });
+      if (!driver) return res.status(404).json({ success: false, message: 'Driver not found for this school' });
+    }
+
+    await prisma.transportStop.deleteMany({ where: { routeId: id } });
+
+    const route = await prisma.transportRoute.update({
+      where: { id },
+      data: {
+        name: data.name,
+        vehicleId: data.vehicleId,
+        driverId: data.driverId,
+        stops: {
+          create: data.stops.map((stop) => ({
+            sequence: stop.sequence,
+            name: stop.name,
+            latitude: stop.latitude,
+            longitude: stop.longitude,
+            estimatedTime: stop.estimatedTime,
+          })),
+        },
+      },
+      include: { stops: true },
+    });
+
+    return res.status(200).json({ success: true, data: route });
+  } catch (error) {
+    if (error instanceof z.ZodError) return res.status(400).json({ success: false, message: error.errors[0].message });
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Error updating transport route' });
+  }
+};
+
 export const getRoutes = async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ success: false, message: 'Unauthenticated' });
@@ -254,5 +302,47 @@ export const getLatestGPSLocation = async (req: AuthenticatedRequest, res: Respo
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, message: 'Error fetching latest GPS location' });
+  }
+};
+
+export const deleteVehicle = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ success: false, message: 'Unauthenticated' });
+    const { id } = req.params;
+    const existing = await prisma.transportVehicle.findFirst({ where: { id, schoolId: req.user.schoolId } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Vehicle not found' });
+    await prisma.transportVehicle.delete({ where: { id } });
+    return res.status(200).json({ success: true, message: 'Vehicle deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Error deleting vehicle' });
+  }
+};
+
+export const deleteRoute = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ success: false, message: 'Unauthenticated' });
+    const { id } = req.params;
+    const existing = await prisma.transportRoute.findFirst({ where: { id, schoolId: req.user.schoolId } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Route not found' });
+    await prisma.transportRoute.delete({ where: { id } });
+    return res.status(200).json({ success: true, message: 'Route deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Error deleting route' });
+  }
+};
+
+export const deleteAllocation = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ success: false, message: 'Unauthenticated' });
+    const { id } = req.params;
+    const existing = await prisma.transportAllocation.findFirst({ where: { id, student: { user: { schoolId: req.user.schoolId } } } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Allocation not found' });
+    await prisma.transportAllocation.delete({ where: { id } });
+    return res.status(200).json({ success: true, message: 'Allocation deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Error deleting allocation' });
   }
 };

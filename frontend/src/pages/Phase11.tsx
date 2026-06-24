@@ -130,8 +130,8 @@ function Branches({ headers, schoolName }: any) {
             </select>
             <input className="bg-slate-700 text-white rounded px-3 py-2" placeholder="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
             <input className="bg-slate-700 text-white rounded px-3 py-2" placeholder="State" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
-            <input className="bg-slate-700 text-white rounded px-3 py-2" placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-            <input className="bg-slate-700 text-white rounded px-3 py-2" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <input type="tel" pattern="[0-9]{10}" maxLength={10} minLength={10} title="10-digit Phone Number" className="bg-slate-700 text-white rounded px-3 py-2" placeholder="10-digit Phone Number" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '') })} />
+            <input type="email" pattern=".+@gmail\.com" title="Must be a @gmail.com address" className="bg-slate-700 text-white rounded px-3 py-2" placeholder="Email (@gmail.com)" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             <input className="bg-slate-700 text-white rounded px-3 py-2 col-span-2" placeholder="Address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
             <input className="bg-slate-700 text-white rounded px-3 py-2" placeholder="UDISE code (optional)" value={form.udiseCode} onChange={(e) => setForm({ ...form, udiseCode: e.target.value })} />
           </div>
@@ -237,11 +237,11 @@ function WhiteLabel({ headers }: any) {
           </label>
           <label className="block">
             <span className="text-slate-400 text-sm">Support Email</span>
-            <input className="w-full bg-slate-700 text-white rounded px-3 py-2 mt-1" value={cfg.supportEmail || ''} onChange={(e) => setCfg({ ...cfg, supportEmail: e.target.value })} />
+            <input type="email" pattern=".+@gmail\.com" title="Must be a @gmail.com address" placeholder="Email (@gmail.com)" className="w-full bg-slate-700 text-white rounded px-3 py-2 mt-1" value={cfg.supportEmail || ''} onChange={(e) => setCfg({ ...cfg, supportEmail: e.target.value })} />
           </label>
           <label className="block">
             <span className="text-slate-400 text-sm">Support Phone</span>
-            <input className="w-full bg-slate-700 text-white rounded px-3 py-2 mt-1" value={cfg.supportPhone || ''} onChange={(e) => setCfg({ ...cfg, supportPhone: e.target.value })} />
+            <input type="tel" pattern="[0-9]{10}" maxLength={10} minLength={10} title="10-digit Phone Number" placeholder="10-digit Phone Number" className="w-full bg-slate-700 text-white rounded px-3 py-2 mt-1" value={cfg.supportPhone || ''} onChange={(e) => setCfg({ ...cfg, supportPhone: e.target.value.replace(/\D/g, '') })} />
           </label>
         </div>
         <div className="mt-4 flex items-center gap-3">
